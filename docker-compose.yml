@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  # 1. PostgreSQL Datenbank
+  db:
+    image: postgres:16-alpine
+    container_name: wetterapp_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Flask Backend
+  backend:
+    build:
+      context: ./WetterApp-Backend
+      dockerfile: Dockerfile
+    container_name: wetterapp_backend
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      PORT: ${PORT}
+      FLASK_ENV: ${FLASK_ENV:-development}
+    depends_on:
+      - db
+
+  # 3. Frontend
+  frontend:
+    build:
+      context: ./WetterApp-Frontend
+      dockerfile: Dockerfile
+    container_name: wetterapp_frontend
+    restart: always
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

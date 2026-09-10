@@ -1,0 +1,70 @@
+// ---------------------------------------------------------------------------
+// Design-Tokens: Retro-Pixel-Look für die Wetterapp.
+// Scharfe Kanten statt Radien, harte Versatz-Schatten statt Weichzeichner,
+// Pixel-Schriftart, Abstände im 4px-Raster (klassisches Pixel-Grid).
+// Nur Variablen hier - Komponenten greifen ausschließlich auf var(--...) zu.
+// ---------------------------------------------------------------------------
+
+:root {
+  // Farben: kräftige, wenig gemischte Töne wie in 8-Bit-Paletten üblich.
+  --color-bg: #cde7f0; // Himmel
+  --color-surface: #fdf6e3; // Karten/Panels, warmes Papier
+  --color-surface-alt: #f6e9c9; // abwechselnde Tabellenzeilen
+  --color-border: #23202b; // fast schwarz, für Pixel-Outlines
+  --color-text: #23202b;
+  --color-text-muted: #6b6470;
+
+  --color-accent: #ffc94a; // Sonne
+  --color-accent-alt: #4aa8ff; // Wasser/Regen
+  --color-success: #6fcf6f; // warm, trocken
+  --color-warning: #ff9d4a; // Sturm/Wind
+  --color-danger: #ff5a5a; // Frost/Extremwerte
+
+  // Pixel-Raster: alle Abstände als Vielfache von 4px.
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  // Keine Rundungen im Pixel-Stil - eckig bleibt eckig.
+  --radius: 0px;
+
+  // Dicke, sichtbare Outlines statt feiner 1px-Linien.
+  --border-width: 3px;
+
+  // Harte Versatz-Schatten ohne Weichzeichner, typisch für Pixel-UI.
+  --shadow-pixel: 4px 4px 0 0 var(--color-border);
+  --shadow-pixel-sm: 2px 2px 0 0 var(--color-border);
+
+  // Pixel-Schriftart mit Systemfallback, falls die Webfont nicht lädt.
+  --font-pixel: "Press Start 2P", "Courier New", monospace;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --line-height-base: 1.6; // Pixel-Schriften brauchen mehr Zeilenabstand.
+
+  --focus-ring: 3px solid var(--color-accent-alt);
+}
+
+// Dunkler Modus: per [data-theme='dark'] am <html> oder <body> aktivierbar.
+[data-theme="dark"] {
+  --color-bg: #1a1f2b;
+  --color-surface: #262b3a;
+  --color-surface-alt: #2f3547;
+  --color-border: #f4f0e6;
+  --color-text: #f4f0e6;
+  --color-text-muted: #9a94a6;
+
+  --color-accent: #ffd873;
+  --color-accent-alt: #6fb8ff;
+  --color-success: #86e086;
+  --color-warning: #ffb066;
+  --color-danger: #ff7a7a;
+
+  --shadow-pixel: 4px 4px 0 0 #000000;
+  --shadow-pixel-sm: 2px 2px 0 0 #000000;
+}

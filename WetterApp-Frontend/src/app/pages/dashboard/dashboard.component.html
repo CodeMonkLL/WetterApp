@@ -1,0 +1,35 @@
+<div class="dashboard">
+  <header class="header">
+    <h1 class="header__title">WETTER DWD</h1>
+    <p class="header__sub">Historische Tageswerte</p>
+  </header>
+
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+
+  <app-station-search
+    [states]="states()"
+    [loading]="stationsLoading()"
+    (search)="onSearch($event)"
+  />
+
+  <div class="grid">
+    <app-station-list
+      [result]="stations()"
+      [loading]="stationsLoading()"
+      [selectedId]="selected()?.station_id ?? null"
+      (select)="onSelectStation($event)"
+      (pageChange)="loadStations($event)"
+    />
+
+    <div class="column">
+      <app-station-detail [station]="selected()" [overview]="overview()" />
+      <app-measurement-table
+        [result]="measurements()"
+        [loading]="measurementsLoading()"
+        (pageChange)="loadMeasurements($event)"
+      />
+    </div>
+  </div>
+</div>

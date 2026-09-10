@@ -1,0 +1,61 @@
+<section class="panel">
+  <h2 class="panel__title">Tageswerte</h2>
+
+  @if (loading()) {
+    <p class="hint">Lade ...</p>
+  } @else if (!result()) {
+    <p class="hint">Station auswaehlen, um Messwerte zu sehen.</p>
+  } @else if (result()!.total === 0) {
+    <p class="hint">Keine Messwerte im gewaehlten Zeitraum.</p>
+  } @else {
+    <p class="hint">{{ result()!.total }} Tageswerte</p>
+
+    <div class="scroll">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Mittel</th>
+            <th>Max</th>
+            <th>Min</th>
+            <th>Regen</th>
+            <th>Sonne</th>
+            <th>Wind</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of result()!.items; track m.date) {
+            <tr>
+              <td>{{ m.date }}</td>
+              <td>{{ m.tmk ?? "-" }}</td>
+              <td>{{ m.txk ?? "-" }}</td>
+              <td>{{ m.tnk ?? "-" }}</td>
+              <td>{{ m.rsk ?? "-" }}</td>
+              <td>{{ m.sdk ?? "-" }}</td>
+              <td>{{ m.fx ?? "-" }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <button
+        type="button"
+        class="btn"
+        [disabled]="!hasPrevious()"
+        (click)="previousPage()"
+      >
+        zurueck
+      </button>
+      <button
+        type="button"
+        class="btn"
+        [disabled]="!hasNext()"
+        (click)="nextPage()"
+      >
+        weiter
+      </button>
+    </div>
+  }
+</section>

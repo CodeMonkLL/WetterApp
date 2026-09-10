@@ -1,0 +1,82 @@
+.panel {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-pixel);
+}
+
+.panel__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.hint {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.scroll {
+  max-height: 420px;
+  overflow: auto;
+  border: var(--border-width) solid var(--color-border);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8px;
+  // Ziffern fluchten spaltenweise, sonst springen die Messwerte.
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: var(--space-2);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  th:first-child,
+  td:first-child {
+    text-align: left;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--color-accent);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  tbody tr:nth-child(even) {
+    background: var(--color-surface-alt);
+  }
+}
+
+.pager {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.btn {
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-xs);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pixel-sm);
+  cursor: pointer;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

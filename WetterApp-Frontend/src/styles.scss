@@ -1,1 +1,22 @@
-/* You can add global styles to this file, and also import other style files */
+@use "./styles/tokens";
+
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  image-rendering: pixelated;
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}

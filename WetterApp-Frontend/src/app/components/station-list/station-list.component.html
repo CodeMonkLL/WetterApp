@@ -1,0 +1,51 @@
+<section class="panel">
+  <h2 class="panel__title">Stationen</h2>
+
+  @if (loading()) {
+    <p class="hint">Lade ...</p>
+  } @else if (!result()) {
+    <p class="hint">Suche starten, um Stationen zu finden.</p>
+  } @else if (result()!.total === 0) {
+    <p class="hint">Keine Station gefunden.</p>
+  } @else {
+    <p class="hint">{{ result()!.total }} Treffer</p>
+
+    <ul class="list">
+      @for (station of result()!.items; track station.station_id) {
+        <li>
+          <button
+            type="button"
+            class="row"
+            [class.row--active]="station.station_id === selectedId()"
+            (click)="select.emit(station)"
+          >
+            <span class="row__name">{{ station.name }}</span>
+            <span class="row__meta">{{ station.state }}</span>
+            <span class="row__meta">
+              {{ station.active_from }} bis {{ station.active_to }}
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <div class="pager">
+      <button
+        type="button"
+        class="btn"
+        [disabled]="!hasPrevious()"
+        (click)="previousPage()"
+      >
+        zurueck
+      </button>
+      <button
+        type="button"
+        class="btn"
+        [disabled]="!hasNext()"
+        (click)="nextPage()"
+      >
+        weiter
+      </button>
+    </div>
+  }
+</section>

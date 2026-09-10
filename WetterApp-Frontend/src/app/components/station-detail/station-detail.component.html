@@ -1,0 +1,54 @@
+@if (station(); as s) {
+  <section class="panel">
+    <h2 class="panel__title">{{ s.name }}</h2>
+
+    <dl class="facts">
+      <div>
+        <dt>ID</dt>
+        <dd>{{ s.station_id }}</dd>
+      </div>
+      <div>
+        <dt>Land</dt>
+        <dd>{{ s.state ?? "-" }}</dd>
+      </div>
+      <div>
+        <dt>Hoehe</dt>
+        <dd>{{ s.height ?? "-" }} m</dd>
+      </div>
+      <div>
+        <dt>Lat</dt>
+        <dd>{{ s.latitude ?? "-" }}</dd>
+      </div>
+      <div>
+        <dt>Lon</dt>
+        <dd>{{ s.longitude ?? "-" }}</dd>
+      </div>
+      <div>
+        <dt>Messzeitraum</dt>
+        <dd>{{ s.active_from }} bis {{ s.active_to }}</dd>
+      </div>
+    </dl>
+
+    @if (overview(); as o) {
+      @if (hasData()) {
+        <p class="note note--ok">
+          Daten vorhanden: {{ o.data_from }} bis {{ o.data_to }}
+        </p>
+        @if (o.latest; as latest) {
+          <div class="latest">
+            <span class="latest__label">zuletzt {{ latest.date }}</span>
+            <span class="latest__value">{{ latest.tmk ?? "-" }} C</span>
+          </div>
+        }
+      } @else {
+        <p class="note note--warn">
+          Keine Messwerte importiert. Import im Backend ausfuehren.
+        </p>
+      }
+    }
+  </section>
+} @else {
+  <section class="panel">
+    <p class="empty">Station auswaehlen</p>
+  </section>
+}

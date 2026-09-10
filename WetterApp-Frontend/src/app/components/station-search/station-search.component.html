@@ -1,0 +1,39 @@
+<form class="search" (ngSubmit)="submit()">
+  <label class="field">
+    <span>Station</span>
+    <input
+      type="text"
+      name="name"
+      placeholder="z.B. Bochum"
+      [(ngModel)]="name"
+      aria-label="Stationsname"
+    />
+  </label>
+
+  <label class="field">
+    <span>Bundesland</span>
+    <select name="state" [(ngModel)]="state">
+      <option value="">alle</option>
+      @for (item of states(); track item) {
+        <option [value]="item">{{ item }}</option>
+      }
+    </select>
+  </label>
+
+  <label class="field">
+    <span>von</span>
+    <input type="date" name="dateFrom" [(ngModel)]="dateFrom" />
+  </label>
+
+  <label class="field">
+    <span>bis</span>
+    <input type="date" name="dateTo" [(ngModel)]="dateTo" />
+  </label>
+
+  <div class="actions">
+    <button type="submit" class="btn btn--primary" [disabled]="loading()">
+      {{ loading() ? "..." : "Suchen" }}
+    </button>
+    <button type="button" class="btn" (click)="reset()">Reset</button>
+  </div>
+</form>

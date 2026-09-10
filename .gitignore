@@ -1,3 +1,36 @@
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+
+# Flask / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Node / Angular
+node_modules/
+WetterApp-Frontend/node_modules/
+WetterApp-Frontend/dist/
+WetterApp-Frontend/.angular/
+WetterApp-Frontend/.cache/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
 venv/
 __pycache__/
 *.pyc

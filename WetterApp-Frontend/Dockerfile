@@ -1,4 +1,5 @@
-FROM node:20-alpine
+# Angular 22 setzt Node >= 24.15 voraus.
+FROM node:24-alpine
 
 WORKDIR /app
 

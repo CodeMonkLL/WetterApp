@@ -25,11 +25,13 @@
       </div>
       <div>
         <dt>Messzeitraum</dt>
-        <dd>{{ s.active_from }} bis {{ s.active_to }}</dd>
+        <dd>{{ s.active_from ?? "-" }} bis {{ s.active_to ?? "-" }}</dd>
       </div>
     </dl>
 
-    @if (overview(); as o) {
+    @if (loading()) {
+      <p class="note">Datenbestand wird geladen ...</p>
+    } @else if (overview(); as o) {
       @if (hasData()) {
         <p class="note note--ok">
           Daten vorhanden: {{ o.data_from }} bis {{ o.data_to }}

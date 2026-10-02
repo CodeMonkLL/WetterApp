@@ -9,6 +9,8 @@ import {
   StationDto,
   StationOverviewDto,
   StationSearchParams,
+  TemperatureAverageDto,
+  TemperatureAverageParams,
 } from '../dtos';
 
 /** Bindet alle Routen des Flask-Backends ein. */
@@ -94,6 +96,28 @@ export class WeatherApiService {
       {
         params: httpParams,
       },
+    );
+  }
+
+  /**
+   * GET /api/measurements/temperature-average
+   *
+   * Mittelt im Backend über den kompletten Zeitraum, unabhängig von der
+   * Seitengröße der Messwerttabelle.
+   */
+  getTemperatureAverage(
+    params: TemperatureAverageParams = {},
+  ): Observable<TemperatureAverageDto> {
+    const httpParams = buildParams({
+      station_id: params.stationId,
+      station_name: params.stationName,
+      state: params.state,
+      date_from: params.dateFrom,
+      date_to: params.dateTo,
+    });
+    return this.http.get<TemperatureAverageDto>(
+      `${this.baseUrl}/measurements/temperature-average`,
+      { params: httpParams },
     );
   }
 }

@@ -11,6 +11,7 @@ import { StationDto, StationOverviewDto } from '../../dtos';
 export class StationDetailComponent {
   readonly station = input<StationDto | null>(null);
   readonly overview = input<StationOverviewDto | null>(null);
+  readonly loading = input(false);
 
   /** Stammdaten sagen, wann der DWD gemessen hat - das hier, was importiert ist. */
   hasData(): boolean {

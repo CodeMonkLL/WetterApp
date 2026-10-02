@@ -1,6 +1,12 @@
 from datetime import date, datetime
 
-from app.Model.Dtos import DailyMeasurementDto, PagedResultDto, StationDto, StationOverviewDto
+from app.Model.Dtos import (
+    DailyMeasurementDto,
+    PagedResultDto,
+    StationDto,
+    StationOverviewDto,
+    TemperatureAverageDto,
+)
 from app.Repository.DailyMeasurementRepository import DailyMeasurementRepository
 from app.Repository.StationRepository import StationRepository
 
@@ -76,6 +82,38 @@ class WeatherService:
         )
 
     @staticmethod
+    def get_temperature_average(
+        station_id: str | None = None,
+        station_name: str | None = None,
+        state: str | None = None,
+        date_from: date | str | None = None,
+        date_to: date | str | None = None,
+    ) -> TemperatureAverageDto:
+        """Mittelt die Temperaturen über denselben Filter wie `search_measurements`.
+
+        Raises:
+            ValueError: Bei ungültigem Datumsformat oder verdrehten Grenzen.
+        """
+        date_from = _as_date(date_from, "date_from")
+        date_to = _as_date(date_to, "date_to")
+        _check_range(date_from, date_to)
+
+        row = DailyMeasurementRepository.temperature_average(
+            station_id, station_name, state, date_from, date_to
+        )
+        return TemperatureAverageDto(
+            station_id=station_id,
+            date_from=date_from.isoformat() if date_from else None,
+            date_to=date_to.isoformat() if date_to else None,
+            data_from=row.first_date.isoformat() if row.first_date else None,
+            data_to=row.last_date.isoformat() if row.last_date else None,
+            days=row.days,
+            avg_tmk=_round(row.avg_tmk),
+            avg_txk=_round(row.avg_txk),
+            avg_tnk=_round(row.avg_tnk),
+        )
+
+    @staticmethod
     def get_station_overview(station_id: str) -> StationOverviewDto | None:
         """Fasst Stammdaten, verfügbaren Zeitraum und jüngsten Messwert zusammen."""
         station = StationRepository.get(station_id)
@@ -104,3 +142,7 @@ def _as_date(value: date | str | None, field: str) -> date | None:
 def _check_range(date_from: date | None, date_to: date | None) -> None:
     if date_from and date_to and date_from > date_to:
         raise ValueError("date_from darf nicht nach date_to liegen.")
+
+
+def _round(value: float | None) -> float | None:
+    return round(value, 1) if value is not None else None

@@ -1,5 +1,58 @@
 <section class="panel">
-  <h2 class="panel__title">Tageswerte</h2>
+  <h2 class="panel__title">Durchschnittswerte Zeitraum</h2>
+
+  @if (periodWithoutData()) {
+    <p class="hint hint--warn">
+      Im gesuchten Zeitraum liegen fuer diese Station keine Messwerte vor.
+      Gezeigt wird der gesamte vorhandene Bestand.
+    </p>
+  }
+
+  @if (average(); as avg) {
+    @if (avg.days === 0) {
+      <p class="hint">Keine Messwerte im gewaehlten Zeitraum.</p>
+    } @else {
+      <div class="summary">
+        <p class="summary__period">{{ periodLabel() }}</p>
+        <div class="summary__grid">
+          <div class="summary__item">
+            <span class="summary__label">Ø Tagesmittel</span>
+            <span class="summary__value">{{
+              formatTemperature(avg.avg_tmk)
+            }}</span>
+          </div>
+          <div class="summary__item">
+            <span class="summary__label">Ø Tagesmax</span>
+            <span class="summary__value">{{
+              formatTemperature(avg.avg_txk)
+            }}</span>
+          </div>
+          <div class="summary__item">
+            <span class="summary__label">Ø Tagesmin</span>
+            <span class="summary__value">{{
+              formatTemperature(avg.avg_tnk)
+            }}</span>
+          </div>
+          <div class="summary__item">
+            <span class="summary__label">Tage mit Messwert</span>
+            <span class="summary__value">{{ avg.days }}</span>
+          </div>
+        </div>
+
+        @if (dataDiffersFromPeriod()) {
+          <p class="summary__note">
+            Messwerte liegen nur für {{ dataRangeLabel() }} vor.
+          </p>
+        }
+      </div>
+    }
+  } @else if (loading()) {
+    <p class="hint">Lade ...</p>
+  } @else {
+    <p class="hint">Station auswaehlen, um Durchschnittswerte zu sehen.</p>
+  }
+
+  <h3 class="panel__title panel__title--section">Tageswerte</h3>
 
   @if (loading()) {
     <p class="hint">Lade ...</p>

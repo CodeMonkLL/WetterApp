@@ -12,13 +12,15 @@ Arbeitsspeicher verarbeitet.
 """
 
 import io
+import logging
 import re
+import threading
 import zipfile
 import concurrent.futures
 from datetime import datetime
 import pandas as pd
 import requests
-from flask import current_app
+from flask import Flask, current_app
 from requests.adapters import HTTPAdapter
 from sqlalchemy.dialects.postgresql import insert
 from urllib3.util.retry import Retry
@@ -26,9 +28,13 @@ from app.Model.Station import Station
 from app.Model.DailyMesaurement import DailyMeasurement
 from app.Repository.DbContext import dbcontext
 
+logger = logging.getLogger(__name__)
+
 BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/historical/"
 STATIONS_URL = BASE_URL + "KL_Tageswerte_Beschreibung_Stationen.txt"
 DEFAULT_WORKERS = 8
+# Fehlwert des DWD, je nach Spalte als "-999" oder "-999.000" geschrieben.
+MISSING_VALUE = -999
 # Die Station-ID steckt im Dateinamen jedes historischen Tageswerte-Archivs.
 STATION_ID_PATTERN = re.compile(r"tageswerte_KL_(\d+)_\d+_\d+_hist\.zip")
 # Die ersten sechs Felder der Stationsbeschreibung enthalten keine Leerzeichen,
@@ -130,6 +136,35 @@ def sync_stations(session: requests.Session) -> int:
     return len(stations)
 
 
+def ensure_data_imported(app: Flask, workers: int = DEFAULT_WORKERS) -> bool:
+    """Startet den Import beim Hochfahren, falls noch keine Messwerte da sind.
+
+    Der Import läuft in einem Hintergrund-Thread, damit der Webserver sofort
+    antwortet. Bei bereits gefüllter Datenbank passiert nichts, der Neustart
+    löst also keinen erneuten Download aus.
+
+    Returns:
+        True, wenn ein Import angestoßen wurde.
+    """
+    if dbcontext.session.query(DailyMeasurement.id).first() is not None:
+        return False
+
+    def run() -> None:
+        with app.app_context():
+            try:
+                results = import_all_stations(workers=workers)
+                imported = sum(int(result["imported"]) for result in results)
+                logger.info("Erstimport fertig: %s Stationen, %s Tageswerte.", len(results), imported)
+            except Exception:
+                logger.exception("Erstimport fehlgeschlagen.")
+            finally:
+                dbcontext.session.remove()
+
+    logger.info("Datenbank ist leer, starte Erstimport im Hintergrund.")
+    threading.Thread(target=run, daemon=True, name="dwd-initial-import").start()
+    return True
+
+
 def import_all_stations(workers: int = DEFAULT_WORKERS, limit: int | None = None) -> list[dict[str, int | str]]:
     """Führt den kompletten Import für alle Stationen durch.
 
@@ -207,10 +242,13 @@ def import_one_station(session: requests.Session, listing_html: str, station_id:
             archive.open(produkt_file),
             sep=";",
             encoding="latin-1",
-            na_values=[-999, "-999"],
         )
 
     df.columns = [column.strip() for column in df.columns]
+    # Nach dem Parsen maskieren, weil na_values nur exakte Textformen trifft und
+    # Gleitkommaspalten "-999.000" statt "-999" enthalten.
+    value_columns = [column for column in COLUMN_MAP if column in df.columns]
+    df[value_columns] = df[value_columns].where(df[value_columns] != MISSING_VALUE)
     # Das DWD liefert das Datum als Zahl im Format YYYYMMDD.
     df["MESS_DATUM"] = pd.to_datetime(df["MESS_DATUM"], format="%Y%m%d").dt.date
 

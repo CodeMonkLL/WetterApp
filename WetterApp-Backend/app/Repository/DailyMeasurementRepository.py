@@ -1,4 +1,5 @@
 from datetime import date
+from typing import NamedTuple
 
 from sqlalchemy import func
 
@@ -8,6 +9,21 @@ from app.Repository.DbContext import dbcontext
 
 # Die Messwerttabelle wird sehr groß, deshalb nie unbegrenzt abfragen.
 MAX_LIMIT = 5000
+
+
+class TemperatureAverageRow(NamedTuple):
+    """Aggregat über eine gefilterte Messwertmenge.
+
+    `first_date`/`last_date` sind der tatsächlich ausgewertete Zeitraum, der
+    ohne Datumsfilter dem gesamten Datenbestand entspricht.
+    """
+
+    avg_tmk: float | None
+    avg_txk: float | None
+    avg_tnk: float | None
+    days: int
+    first_date: date | None
+    last_date: date | None
 
 
 class DailyMeasurementRepository:
@@ -53,6 +69,43 @@ class DailyMeasurementRepository:
         return DailyMeasurementRepository._filtered(
             station_id, station_name, state, date_from, date_to
         ).count()
+
+    @staticmethod
+    def temperature_average(
+        station_id: str | None = None,
+        station_name: str | None = None,
+        state: str | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+    ) -> TemperatureAverageRow:
+        """Mittelt Tagesmittel, -maximum und -minimum über dieselben Filter wie `search`.
+
+        Die Aggregation läuft in der Datenbank, also über den kompletten
+        Zeitraum statt nur über eine Ergebnisseite. Fehlende Messwerte sind
+        NULL und fließen nicht ein.
+        """
+        avg_tmk, avg_txk, avg_tnk, days, first_date, last_date = (
+            DailyMeasurementRepository._filtered(
+                station_id, station_name, state, date_from, date_to
+            )
+            .with_entities(
+                func.avg(DailyMeasurement.tmk),
+                func.avg(DailyMeasurement.txk),
+                func.avg(DailyMeasurement.tnk),
+                func.count(DailyMeasurement.tmk),
+                func.min(DailyMeasurement.date),
+                func.max(DailyMeasurement.date),
+            )
+            .one()
+        )
+        return TemperatureAverageRow(
+            _as_float(avg_tmk),
+            _as_float(avg_txk),
+            _as_float(avg_tnk),
+            days,
+            first_date,
+            last_date,
+        )
 
     @staticmethod
     def get(station_id: str, measured_on: date) -> DailyMeasurement | None:
@@ -107,3 +160,8 @@ class DailyMeasurementRepository:
 
 def _clamp(limit: int) -> int:
     return max(1, min(limit, MAX_LIMIT))
+
+
+# Postgres liefert AVG als Decimal.
+def _as_float(value) -> float | None:
+    return float(value) if value is not None else None

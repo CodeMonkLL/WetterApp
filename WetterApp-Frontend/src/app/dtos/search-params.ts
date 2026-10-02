@@ -27,3 +27,9 @@ export interface MeasurementSearchParams {
   limit?: number;
   offset?: number;
 }
+
+/** Query-Parameter für GET /api/measurements/temperature-average. */
+export type TemperatureAverageParams = Omit<
+  MeasurementSearchParams,
+  'order' | 'limit' | 'offset'
+>;

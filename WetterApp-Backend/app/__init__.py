@@ -24,12 +24,23 @@ def create_app():
     from app.Model import DailyMeasurement, Station  # noqa: F401  Modelle bei SQLAlchemy registrieren
     from app.Controller import register_controllers
     from app.cli import register_cli
+    from app.Service.download_data import ensure_data_imported
 
     with app.app_context():
         dbcontext.create_all()
+        if _auto_import_enabled():
+            ensure_data_imported(app)
 
     Swagger(app, template=SWAGGER_TEMPLATE)
     register_controllers(app)
     register_cli(app)
 
     return app
+
+
+def _auto_import_enabled() -> bool:
+    """Im Debug-Modus lädt Werkzeug die App zweimal, der Elternprozess importiert nicht."""
+    if os.getenv("AUTO_IMPORT", "1") != "1":
+        return False
+    is_reloader_parent = os.getenv("FLASK_ENV") == "development" and os.getenv("WERKZEUG_RUN_MAIN") is None
+    return not is_reloader_parent

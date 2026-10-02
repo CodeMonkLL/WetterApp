@@ -83,3 +83,59 @@ def search_measurements():
         offset=int_arg('offset', 0),
     )
     return jsonify(asdict(result)), 200
+
+
+@measurement_bp.route('/api/measurements/temperature-average', methods=['GET'])
+def temperature_average():
+    """Liefert die mittlere Temperatur für Station und Zeitraum.
+
+    Nutzt dieselben Filter wie `/api/measurements`, aggregiert aber über den
+    kompletten Zeitraum statt über eine Ergebnisseite. Tage ohne Messwert
+    fließen nicht ein, `days` nennt die Anzahl der berücksichtigten Tage.
+    `date_from`/`date_to` geben die Filtereingabe zurück, `data_from`/`data_to`
+    den Zeitraum mit tatsächlich vorhandenen Messwerten.
+    ---
+    tags:
+      - Messwerte
+    parameters:
+      - name: station_id
+        in: query
+        type: string
+        required: false
+        description: DWD-Station-ID, exakter Treffer, z.B. "00003".
+      - name: station_name
+        in: query
+        type: string
+        required: false
+        description: Teil des Stationsnamens, z.B. "aachen".
+      - name: state
+        in: query
+        type: string
+        required: false
+        description: Bundesland der Station, exakter Treffer.
+      - name: date_from
+        in: query
+        type: string
+        format: date
+        required: false
+        description: Frühestes Messdatum, einschließlich (YYYY-MM-DD).
+      - name: date_to
+        in: query
+        type: string
+        format: date
+        required: false
+        description: Spätestes Messdatum, einschließlich (YYYY-MM-DD).
+    responses:
+      200:
+        description: Mittelwerte von Tagesmittel, -maximum und -minimum in °C.
+      400:
+        description: Ungültiges Datumsformat.
+    """
+    result = WeatherService.get_temperature_average(
+        station_id=request.args.get('station_id'),
+        station_name=request.args.get('station_name'),
+        state=request.args.get('state'),
+        date_from=request.args.get('date_from'),
+        date_to=request.args.get('date_to'),
+    )
+    return jsonify(asdict(result)), 200

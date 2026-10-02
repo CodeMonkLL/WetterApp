@@ -1,4 +1,12 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  WritableSignal,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EMPTY, Observable, Subject, catchError, switchMap, tap } from 'rxjs';
 
 import { MeasurementTableComponent } from '../../components/measurement-table/measurement-table.component';
 import { StationDetailComponent } from '../../components/station-detail/station-detail.component';
@@ -10,11 +18,17 @@ import {
   StationDto,
   StationOverviewDto,
   StationSearchParams,
+  TemperatureAverageDto,
 } from '../../dtos';
 import { WeatherApiService } from '../../services/weather-api.service';
 
 const STATION_PAGE_SIZE = 25;
 const MEASUREMENT_PAGE_SIZE = 50;
+
+interface DateRange {
+  dateFrom?: string;
+  dateTo?: string;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -37,13 +51,122 @@ export class DashboardComponent implements OnInit {
 
   readonly selected = signal<StationDto | null>(null);
   readonly overview = signal<StationOverviewDto | null>(null);
+  readonly overviewLoading = signal(false);
 
   readonly measurements = signal<PagedResult<DailyMeasurementDto> | null>(null);
   readonly measurementsLoading = signal(false);
+  readonly temperatureAverage = signal<TemperatureAverageDto | null>(null);
+  /** Gesuchter Zeitraum liegt komplett neben dem importierten Bestand. */
+  readonly periodWithoutData = signal(false);
 
   readonly error = signal<string | null>(null);
 
-  private params: StationSearchParams = {};
+  private readonly searchParams = signal<StationSearchParams>({});
+  /** Zeitraum der Messwerte, bereits gegen den importierten Bestand geprüft. */
+  private readonly measurementRange = signal<DateRange>({});
+
+  private readonly stationQuery = new Subject<number>();
+  private readonly overviewQuery = new Subject<string>();
+  private readonly measurementQuery = new Subject<number>();
+  private readonly averageQuery = new Subject<void>();
+
+  /** switchMap bricht die vorherige Anfrage ab, sonst kann eine überholte Antwort zuletzt gewinnen. */
+  constructor() {
+    this.stationQuery
+      .pipe(
+        tap(() => {
+          this.stationsLoading.set(true);
+          this.error.set(null);
+        }),
+        switchMap((offset) =>
+          this.api
+            .searchStations({
+              ...this.searchParams(),
+              limit: STATION_PAGE_SIZE,
+              offset,
+            })
+            .pipe(catchError((err) => this.fail(err, this.stationsLoading))),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((result) => {
+        this.stations.set(result);
+        this.stationsLoading.set(false);
+      });
+
+    // Das Overview läuft zuerst, weil erst damit feststeht, welcher Zeitraum
+    // tatsächlich importiert ist und für die Messwerte taugt.
+    this.overviewQuery
+      .pipe(
+        tap(() => {
+          this.overviewLoading.set(true);
+          this.measurementsLoading.set(true);
+        }),
+        switchMap((stationId) =>
+          this.api
+            .getStationOverview(stationId)
+            .pipe(
+              catchError((err) =>
+                this.fail(err, this.overviewLoading, this.measurementsLoading),
+              ),
+            ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((overview) => {
+        this.overview.set(overview);
+        this.overviewLoading.set(false);
+        this.applyRange(overview);
+        this.measurementQuery.next(0);
+        this.averageQuery.next();
+      });
+
+    this.measurementQuery
+      .pipe(
+        tap(() => this.measurementsLoading.set(true)),
+        switchMap((offset) => {
+          const station = this.selected();
+          if (!station) {
+            this.measurementsLoading.set(false);
+            return EMPTY;
+          }
+          return this.api
+            .searchMeasurements({
+              stationId: station.station_id,
+              ...this.measurementRange(),
+              limit: MEASUREMENT_PAGE_SIZE,
+              offset,
+            })
+            .pipe(
+              catchError((err) => this.fail(err, this.measurementsLoading)),
+            );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((result) => {
+        this.measurements.set(result);
+        this.measurementsLoading.set(false);
+      });
+
+    // Gilt für den gesamten Zeitraum, muss daher nicht je Tabellenseite neu laden.
+    this.averageQuery
+      .pipe(
+        switchMap(() => {
+          const station = this.selected();
+          if (!station) {
+            return EMPTY;
+          }
+          return this.api
+            .getTemperatureAverage({
+              stationId: station.station_id,
+              ...this.measurementRange(),
+            })
+            .pipe(catchError((err) => this.fail(err)));
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((average) => this.temperatureAverage.set(average));
+  }
 
   ngOnInit(): void {
     this.api.listStates().subscribe({
@@ -54,67 +177,66 @@ export class DashboardComponent implements OnInit {
   }
 
   onSearch(params: StationSearchParams): void {
-    this.params = params;
+    this.searchParams.set(params);
     this.selected.set(null);
     this.overview.set(null);
+    this.overviewLoading.set(false);
     this.measurements.set(null);
+    this.measurementsLoading.set(false);
+    this.temperatureAverage.set(null);
+    this.periodWithoutData.set(false);
     this.loadStations(0);
   }
 
   onSelectStation(station: StationDto): void {
     this.selected.set(station);
     this.overview.set(null);
+    this.measurements.set(null);
+    this.temperatureAverage.set(null);
+    this.periodWithoutData.set(false);
+    this.error.set(null);
 
-    this.api.getStationOverview(station.station_id).subscribe({
-      next: (overview) => this.overview.set(overview),
-      error: (err) => this.error.set(readError(err)),
-    });
-    this.loadMeasurements(0);
+    this.overviewQuery.next(station.station_id);
   }
 
   loadStations(offset: number): void {
-    this.stationsLoading.set(true);
-    this.error.set(null);
-
-    this.api
-      .searchStations({ ...this.params, limit: STATION_PAGE_SIZE, offset })
-      .subscribe({
-        next: (result) => {
-          this.stations.set(result);
-          this.stationsLoading.set(false);
-        },
-        error: (err) => {
-          this.error.set(readError(err));
-          this.stationsLoading.set(false);
-        },
-      });
+    this.stationQuery.next(offset);
   }
 
   loadMeasurements(offset: number): void {
-    const station = this.selected();
-    if (!station) {
+    this.measurementQuery.next(offset);
+  }
+
+  /**
+   * Die Stationssuche filtert über die DWD-Stammdaten, die Messwerte über den
+   * importierten Bestand. Liegt der gesuchte Zeitraum komplett daneben, würde
+   * der Filter eine leere Tabelle erzeugen - dann lieber den ganzen Bestand.
+   */
+  private applyRange(overview: StationOverviewDto): void {
+    const { dateFrom, dateTo } = this.searchParams();
+    const dataFrom = overview.data_from;
+    const dataTo = overview.data_to;
+
+    if ((!dateFrom && !dateTo) || !dataFrom || !dataTo) {
+      this.measurementRange.set({});
+      this.periodWithoutData.set(false);
       return;
     }
 
-    this.measurementsLoading.set(true);
-    this.api
-      .searchMeasurements({
-        stationId: station.station_id,
-        dateFrom: this.params.dateFrom,
-        dateTo: this.params.dateTo,
-        limit: MEASUREMENT_PAGE_SIZE,
-        offset,
-      })
-      .subscribe({
-        next: (result) => {
-          this.measurements.set(result);
-          this.measurementsLoading.set(false);
-        },
-        error: (err) => {
-          this.error.set(readError(err));
-          this.measurementsLoading.set(false);
-        },
-      });
+    // ISO-Datumsstrings lassen sich direkt vergleichen.
+    const overlaps =
+      (!dateFrom || dateFrom <= dataTo) && (!dateTo || dateTo >= dataFrom);
+    this.measurementRange.set(overlaps ? { dateFrom, dateTo } : {});
+    this.periodWithoutData.set(!overlaps);
+  }
+
+  private fail(
+    err: unknown,
+    ...loading: WritableSignal<boolean>[]
+  ): Observable<never> {
+    this.error.set(readError(err));
+    loading.forEach((flag) => flag.set(false));
+    return EMPTY;
   }
 }
 

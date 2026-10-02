@@ -26,10 +26,16 @@
     />
 
     <div class="column">
-      <app-station-detail [station]="selected()" [overview]="overview()" />
+      <app-station-detail
+        [station]="selected()"
+        [overview]="overview()"
+        [loading]="overviewLoading()"
+      />
       <app-measurement-table
         [result]="measurements()"
+        [average]="temperatureAverage()"
         [loading]="measurementsLoading()"
+        [periodWithoutData]="periodWithoutData()"
         (pageChange)="loadMeasurements($event)"
       />
     </div>

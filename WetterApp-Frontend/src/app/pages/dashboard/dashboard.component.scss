@@ -1,37 +1,7 @@
 .dashboard {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: var(--space-5) var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-.header {
-  position: relative;
-  padding: var(--space-4);
-  background: var(--color-accent);
-  border: var(--border-width) solid var(--color-border);
-  box-shadow: var(--shadow-pixel);
-}
-
-.header__brand {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.header__title {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  letter-spacing: 2px;
-}
-
-.header__sub {
-  margin: var(--space-2) 0 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
 }
 
 .error {
@@ -54,6 +24,68 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-pixel);
+  font-size: var(--font-size-xs);
+}
+
+.toolbar__label {
+  margin-right: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.toolbar__period {
+  margin-left: auto;
+  color: var(--color-text-muted);
+}
+
+.hint {
+  margin: 0;
+  padding: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+}
+
+.hint--warn {
+  color: var(--color-text);
+  background: var(--color-warning);
+}
+
+.btn {
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-xs);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pixel-sm);
+  cursor: pointer;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn--active {
+  background: var(--color-accent-alt);
 }
 
 @media (max-width: 900px) {

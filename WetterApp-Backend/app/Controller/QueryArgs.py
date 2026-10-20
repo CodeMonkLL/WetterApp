@@ -20,3 +20,18 @@ def int_arg(name: str, default: int) -> int:
     if value < 0:
         raise ValueError(f"{name} darf nicht negativ sein, war: {value}")
     return min(value, MAX_LIMIT)
+
+
+def float_arg(name: str) -> float | None:
+    """Liest einen optionalen Query-Parameter als Kommazahl.
+
+    Raises:
+        ValueError: Wenn der Wert keine Zahl ist.
+    """
+    raw = request.args.get(name)
+    if raw is None or raw == "":
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        raise ValueError(f"{name} muss eine Zahl sein, war: {raw!r}") from None

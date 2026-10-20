@@ -135,6 +135,43 @@ class DailyMeasurementRepository:
         return first, last
 
     @staticmethod
+    def stations_with_data(station_ids: list[str], date_from: date, date_to: date) -> set[str]:
+        """Liefert die Stationen aus `station_ids`, die im Zeitraum mindestens einen Tageswert haben."""
+        if not station_ids:
+            return set()
+        rows = (
+            dbcontext.session.query(DailyMeasurement.station_id)
+            .filter(
+                DailyMeasurement.station_id.in_(station_ids),
+                DailyMeasurement.date >= date_from,
+                DailyMeasurement.date <= date_to,
+            )
+            .distinct()
+            .all()
+        )
+        return {row[0] for row in rows}
+
+    @staticmethod
+    def values_for_stations(
+        station_ids: list[str], date_from: date, date_to: date, columns: list[str]
+    ) -> list[tuple]:
+        """Liefert `(station_id, date, *columns)` aller Tageswerte der Stationen im Zeitraum.
+
+        Kein Limit, weil die Auswertung den kompletten Zeitraum braucht. Die
+        Stationszahl begrenzt der Aufrufer.
+        """
+        selected = [getattr(DailyMeasurement, column) for column in columns]
+        return (
+            dbcontext.session.query(DailyMeasurement.station_id, DailyMeasurement.date, *selected)
+            .filter(
+                DailyMeasurement.station_id.in_(station_ids),
+                DailyMeasurement.date >= date_from,
+                DailyMeasurement.date <= date_to,
+            )
+            .all()
+        )
+
+    @staticmethod
     def _filtered(
         station_id: str | None,
         station_name: str | None,

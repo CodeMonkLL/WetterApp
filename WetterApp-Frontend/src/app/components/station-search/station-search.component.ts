@@ -11,19 +11,16 @@ import { StationSearchParams } from '../../dtos';
   styleUrl: './station-search.component.scss',
 })
 export class StationSearchComponent {
-  readonly states = input<string[]>([]);
   readonly loading = input(false);
   readonly search = output<StationSearchParams>();
 
   name = '';
-  state = '';
   dateFrom = '';
   dateTo = '';
 
   submit(): void {
     this.search.emit({
       name: this.name.trim() || undefined,
-      state: this.state || undefined,
       dateFrom: this.dateFrom || undefined,
       dateTo: this.dateTo || undefined,
     });
@@ -31,7 +28,6 @@ export class StationSearchComponent {
 
   reset(): void {
     this.name = '';
-    this.state = '';
     this.dateFrom = '';
     this.dateTo = '';
     this.submit();

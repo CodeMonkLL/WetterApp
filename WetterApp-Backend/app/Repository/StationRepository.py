@@ -58,6 +58,15 @@ class StationRepository:
         return [row[0] for row in rows]
 
     @staticmethod
+    def with_coordinates(date_from: date | None = None, date_to: date | None = None) -> list[Station]:
+        """Liefert alle Stationen mit Koordinaten, deren Messzeitraum den Zeitraum schneidet."""
+        return (
+            StationRepository._filtered(None, None, date_from, date_to)
+            .filter(Station.latitude.isnot(None), Station.longitude.isnot(None))
+            .all()
+        )
+
+    @staticmethod
     def _filtered(name: str | None, state: str | None, date_from: date | None, date_to: date | None):
         query = Station.query
         if name:

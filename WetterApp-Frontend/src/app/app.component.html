@@ -1,1 +1,25 @@
-﻿<router-outlet />
+﻿<div class="shell">
+  <header class="header">
+    <div class="header__brand">
+      <h1 class="header__title">WETTER DWD</h1>
+      <nav class="nav">
+        <a
+          class="nav__link"
+          routerLink="/"
+          routerLinkActive="nav__link--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Stationen</a
+        >
+        <a
+          class="nav__link"
+          routerLink="/auswertung"
+          routerLinkActive="nav__link--active"
+          >Ortsauswertung</a
+        >
+      </nav>
+    </div>
+    <p class="header__sub">Historische Tageswerte</p>
+  </header>
+
+  <router-outlet />
+</div>

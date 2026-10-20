@@ -1,0 +1,77 @@
+<form class="search" #form="ngForm" (ngSubmit)="submit()">
+  <label class="field field--wide">
+    <span>Adresse oder Ort</span>
+    <input
+      type="text"
+      name="address"
+      placeholder="z.B. Domkloster 4, Koeln"
+      [(ngModel)]="address"
+      required
+      maxlength="200"
+    />
+  </label>
+
+  <label class="field">
+    <span>von</span>
+    <input type="date" name="dateFrom" [(ngModel)]="dateFrom" required />
+  </label>
+
+  <label class="field">
+    <span>bis</span>
+    <input type="date" name="dateTo" [(ngModel)]="dateTo" required />
+  </label>
+
+  <label class="field">
+    <span>Aufloesung</span>
+    <select name="resolution" [(ngModel)]="resolution">
+      <option value="day">Tag</option>
+      <option value="month">Monat</option>
+      <option value="year">Jahr</option>
+    </select>
+  </label>
+
+  <label class="field field--narrow">
+    <span>Stationen</span>
+    <input
+      type="number"
+      name="stations"
+      min="1"
+      max="10"
+      [(ngModel)]="stations"
+    />
+  </label>
+
+  <label class="field field--narrow">
+    <span>Radius km</span>
+    <input
+      type="number"
+      name="radiusKm"
+      min="1"
+      max="200"
+      [(ngModel)]="radiusKm"
+    />
+  </label>
+
+  <label class="field field--narrow">
+    <span>Hoehe m</span>
+    <input
+      type="number"
+      name="height"
+      min="-100"
+      max="3000"
+      placeholder="optional"
+      [(ngModel)]="height"
+      title="Hoehe des Ortes ueber NN. Temperaturen werden dann mit 0,65 K/100 m umgerechnet."
+    />
+  </label>
+
+  <div class="actions">
+    <button
+      type="submit"
+      class="btn btn--primary"
+      [disabled]="loading() || form.invalid"
+    >
+      {{ loading() ? "..." : "Auswerten" }}
+    </button>
+  </div>
+</form>

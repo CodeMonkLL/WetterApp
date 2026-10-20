@@ -1,17 +1,9 @@
 <div class="dashboard">
-  <header class="header">
-    <div class="header__brand">
-      <h1 class="header__title">WETTER DWD</h1>
-    </div>
-    <p class="header__sub">Historische Tageswerte</p>
-  </header>
-
   @if (error(); as message) {
     <p class="error">{{ message }}</p>
   }
 
   <app-station-search
-    [states]="states()"
     [loading]="stationsLoading()"
     (search)="onSearch($event)"
   />
@@ -31,13 +23,45 @@
         [overview]="overview()"
         [loading]="overviewLoading()"
       />
-      <app-measurement-table
-        [result]="measurements()"
-        [average]="temperatureAverage()"
-        [loading]="measurementsLoading()"
-        [periodWithoutData]="periodWithoutData()"
-        (pageChange)="loadMeasurements($event)"
-      />
+
+      @if (selected()) {
+        <div class="toolbar">
+          <span class="toolbar__label">Aufloesung</span>
+          @for (r of resolutions; track r.value) {
+            <button
+              type="button"
+              class="btn"
+              [class.btn--active]="resolution() === r.value"
+              [disabled]="analysisLoading()"
+              (click)="onResolutionChange(r.value)"
+            >
+              {{ r.label }}
+            </button>
+          }
+          @if (analysis(); as a) {
+            @if (a.date_from && a.date_to) {
+              <span class="toolbar__period"
+                >{{ formatDate(a.date_from) }} bis
+                {{ formatDate(a.date_to) }}</span
+              >
+            }
+          }
+        </div>
+
+        @if (periodWithoutData()) {
+          <p class="hint hint--warn">
+            Im gesuchten Zeitraum liegen fuer diese Station keine Messwerte vor.
+            Gezeigt wird der gesamte vorhandene Bestand.
+          </p>
+        }
+
+        @if (analysis(); as a) {
+          <app-analysis-chart [series]="a.series" />
+          <app-analysis-table [series]="a.series" />
+        } @else if (analysisLoading()) {
+          <p class="hint">Lade ...</p>
+        }
+      }
     </div>
   </div>
 </div>

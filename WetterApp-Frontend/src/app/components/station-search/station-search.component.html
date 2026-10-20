@@ -11,16 +11,6 @@
   </label>
 
   <label class="field">
-    <span>Bundesland</span>
-    <select name="state" [(ngModel)]="state">
-      <option value="">alle</option>
-      @for (item of states(); track item) {
-        <option [value]="item">{{ item }}</option>
-      }
-    </select>
-  </label>
-
-  <label class="field">
     <span>von</span>
     <input type="date" name="dateFrom" [(ngModel)]="dateFrom" />
   </label>

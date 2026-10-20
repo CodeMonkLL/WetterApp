@@ -3,9 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  AnalysisResolution,
   DailyMeasurementDto,
+  LocationAnalysisDto,
+  LocationAnalysisParams,
   MeasurementSearchParams,
   PagedResult,
+  StationAnalysisDto,
   StationDto,
   StationOverviewDto,
   StationSearchParams,
@@ -37,7 +41,6 @@ export class WeatherApiService {
   ): Observable<PagedResult<StationDto>> {
     const httpParams = buildParams({
       name: params.name,
-      state: params.state,
       date_from: params.dateFrom,
       date_to: params.dateTo,
       limit: params.limit,
@@ -67,9 +70,28 @@ export class WeatherApiService {
     );
   }
 
-  /** GET /api/states */
-  listStates(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.baseUrl}/states`);
+  /**
+   * GET /api/stations/{stationId}/analysis
+   *
+   * Ohne Datumsgrenzen wertet das Backend den gesamten importierten Bestand aus.
+   */
+  getStationAnalysis(
+    stationId: string,
+    params: {
+      dateFrom?: string;
+      dateTo?: string;
+      resolution?: AnalysisResolution;
+    },
+  ): Observable<StationAnalysisDto> {
+    const httpParams = buildParams({
+      date_from: params.dateFrom,
+      date_to: params.dateTo,
+      resolution: params.resolution,
+    });
+    return this.http.get<StationAnalysisDto>(
+      `${this.baseUrl}/stations/${encodeURIComponent(stationId)}/analysis`,
+      { params: httpParams },
+    );
   }
 
   /**
@@ -84,7 +106,6 @@ export class WeatherApiService {
     const httpParams = buildParams({
       station_id: params.stationId,
       station_name: params.stationName,
-      state: params.state,
       date_from: params.dateFrom,
       date_to: params.dateTo,
       order: params.order,
@@ -111,7 +132,6 @@ export class WeatherApiService {
     const httpParams = buildParams({
       station_id: params.stationId,
       station_name: params.stationName,
-      state: params.state,
       date_from: params.dateFrom,
       date_to: params.dateTo,
     });
@@ -120,6 +140,37 @@ export class WeatherApiService {
       { params: httpParams },
     );
   }
+
+  /**
+   * GET /api/analysis/location
+   *
+   * Interpoliert die Werte der Nachbarstationen auf einen beliebigen Ort.
+   */
+  analyseLocation(
+    params: LocationAnalysisParams,
+  ): Observable<LocationAnalysisDto> {
+    const httpParams = buildParams({
+      address: params.address,
+      lat: params.lat,
+      lon: params.lon,
+      date_from: params.dateFrom,
+      date_to: params.dateTo,
+      resolution: params.resolution,
+      stations: params.stations,
+      radius_km: params.radiusKm,
+      height: params.height,
+    });
+    return this.http.get<LocationAnalysisDto>(
+      `${this.baseUrl}/analysis/location`,
+      { params: httpParams },
+    );
+  }
+}
+
+/** Das Backend meldet Fehler als { error: "..." }. */
+export function readError(err: unknown): string {
+  const body = (err as { error?: { error?: string } })?.error;
+  return body?.error ?? 'Backend nicht erreichbar.';
 }
 
 /** Übernimmt nur gesetzte Werte, damit das Backend seine Standardwerte behält. */

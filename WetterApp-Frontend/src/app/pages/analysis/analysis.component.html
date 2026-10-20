@@ -1,0 +1,28 @@
+<div class="page">
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+
+  <app-location-search [loading]="loading()" (search)="onSearch($event)" />
+
+  @if (result(); as r) {
+    <div class="grid">
+      <app-neighbor-stations [analysis]="r" />
+
+      <div class="column">
+        <app-analysis-chart [series]="r.series" />
+        <app-analysis-table [series]="r.series" />
+      </div>
+    </div>
+  } @else {
+    <p class="panel hint">
+      @if (loading()) {
+        Lade ...
+      } @else {
+        Adresse und Zeitraum eingeben. Liegt der Ort nicht direkt an einer
+        Station, werden die naechstgelegenen Stationen nach Entfernung gewichtet
+        zusammengefasst.
+      }
+    </p>
+  }
+</div>

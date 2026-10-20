@@ -3,6 +3,7 @@ from dataclasses import asdict
 from flask import Blueprint, jsonify, request
 
 from app.Controller.QueryArgs import int_arg
+from app.Service.LocationAnalysisService import LocationAnalysisService
 from app.Service.WeatherService import WeatherService
 
 station_bp = Blueprint('stations', __name__)
@@ -119,6 +120,61 @@ def get_station_overview(station_id: str):
     if overview is None:
         return jsonify({"error": f"Station {station_id} nicht gefunden."}), 404
     return jsonify(asdict(overview)), 200
+
+
+@station_bp.route('/api/stations/<station_id>/analysis', methods=['GET'])
+def get_station_analysis(station_id: str):
+    """Verdichtet die Tageswerte einer Station auf Tag, Monat oder Jahr.
+
+    Gleiches Antwortformat wie die Zeitreihe von `/api/analysis/location`.
+    Temperatur, Wind und Feuchte werden gemittelt, Niederschlag und
+    Sonnenschein summiert. Ohne Datumsgrenzen wird der gesamte importierte
+    Bestand ausgewertet.
+    ---
+    tags:
+      - Stationen
+    parameters:
+      - name: station_id
+        in: path
+        type: string
+        required: true
+        description: DWD-Station-ID, z.B. "00003".
+      - name: date_from
+        in: query
+        type: string
+        format: date
+        required: false
+        description: Beginn des Zeitraums, einschließlich (YYYY-MM-DD).
+      - name: date_to
+        in: query
+        type: string
+        format: date
+        required: false
+        description: Ende des Zeitraums, einschließlich (YYYY-MM-DD).
+      - name: resolution
+        in: query
+        type: string
+        enum: [day, month, year]
+        default: month
+        required: false
+        description: Zeitliche Auflösung.
+    responses:
+      200:
+        description: Zeitreihe der Station.
+      400:
+        description: Ungültiges Datum oder ungültige Auflösung.
+      404:
+        description: Station existiert nicht.
+    """
+    analysis = LocationAnalysisService.analyse_station(
+        station_id,
+        date_from=request.args.get('date_from'),
+        date_to=request.args.get('date_to'),
+        resolution=request.args.get('resolution', 'month'),
+    )
+    if analysis is None:
+        return jsonify({"error": f"Station {station_id} nicht gefunden."}), 404
+    return jsonify(asdict(analysis)), 200
 
 
 @station_bp.route('/api/states', methods=['GET'])

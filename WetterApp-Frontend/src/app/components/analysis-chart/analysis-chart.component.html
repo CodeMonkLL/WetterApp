@@ -1,0 +1,117 @@
+<section class="panel">
+  <h2 class="panel__title">Grafik</h2>
+
+  @if (!series().length) {
+    <p class="hint">Keine Messwerte im gewaehlten Zeitraum.</p>
+  } @else {
+    <h3 class="chart__title">Temperatur</h3>
+    <div class="legend">
+      <span class="legend__item"><i class="swatch swatch--max"></i>Max</span>
+      <span class="legend__item"
+        ><i class="swatch swatch--mean"></i>Mittel</span
+      >
+      <span class="legend__item"><i class="swatch swatch--min"></i>Min</span>
+    </div>
+
+    @if (temperature(); as t) {
+      <svg
+        class="chart"
+        [attr.viewBox]="'0 0 ' + width + ' ' + tempHeight"
+        role="img"
+        aria-label="Temperaturverlauf"
+      >
+        @for (tick of t.ticks; track tick.label) {
+          <line
+            class="gridline"
+            [attr.x1]="pad.left"
+            [attr.x2]="width - pad.right"
+            [attr.y1]="tick.y"
+            [attr.y2]="tick.y"
+          />
+          <text
+            class="axis"
+            text-anchor="end"
+            [attr.x]="pad.left - 4"
+            [attr.y]="tick.y + 3"
+          >
+            {{ tick.label }}
+          </text>
+        }
+        @for (line of t.lines; track line.cls) {
+          <path [attr.class]="'line ' + line.cls" [attr.d]="line.path" />
+        }
+        @for (m of t.markers; track $index) {
+          <circle class="marker" r="3" [attr.cx]="m.x" [attr.cy]="m.y">
+            <title>{{ m.title }}</title>
+          </circle>
+        }
+        @for (l of xLabels(); track l.x) {
+          <text
+            class="axis"
+            [attr.x]="l.x"
+            [attr.y]="tempHeight - 6"
+            [attr.text-anchor]="l.anchor"
+          >
+            {{ l.label }}
+          </text>
+        }
+      </svg>
+    } @else {
+      <p class="hint">Keine Temperaturwerte vorhanden.</p>
+    }
+
+    <h3 class="chart__title">Niederschlag (mm)</h3>
+    @if (rain(); as r) {
+      <svg
+        class="chart"
+        [attr.viewBox]="'0 0 ' + width + ' ' + rainHeight"
+        role="img"
+        aria-label="Niederschlag"
+      >
+        @for (tick of r.ticks; track tick.label) {
+          <line
+            class="gridline"
+            [attr.x1]="pad.left"
+            [attr.x2]="width - pad.right"
+            [attr.y1]="tick.y"
+            [attr.y2]="tick.y"
+          />
+          <text
+            class="axis"
+            text-anchor="end"
+            [attr.x]="pad.left - 4"
+            [attr.y]="tick.y + 3"
+          >
+            {{ tick.label }}
+          </text>
+        }
+        @for (b of r.bars; track $index) {
+          <rect
+            class="bar"
+            [attr.x]="b.x"
+            [attr.y]="b.y"
+            [attr.width]="b.width"
+            [attr.height]="b.height"
+          >
+            <title>{{ b.title }}</title>
+          </rect>
+        }
+        @if (r.barPath) {
+          <path class="bar" [attr.d]="r.barPath" />
+        }
+        @for (l of xLabels(); track l.x) {
+          <text
+            class="axis"
+            [attr.x]="l.x"
+            [attr.y]="rainHeight - 6"
+            [attr.text-anchor]="l.anchor"
+          >
+            {{ l.label }}
+          </text>
+        }
+      </svg>
+    } @else {
+      <p class="hint">Keine Niederschlagswerte vorhanden.</p>
+    }
+  }
+</section>

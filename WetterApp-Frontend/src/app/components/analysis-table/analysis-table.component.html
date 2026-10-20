@@ -1,0 +1,66 @@
+<section class="panel">
+  <h2 class="panel__title">Tabelle</h2>
+
+  @if (!series().length) {
+    <p class="hint">Keine Messwerte im gewaehlten Zeitraum.</p>
+  } @else {
+    <p class="hint">
+      Zeilen {{ rangeLabel() }}. Regen und Sonne sind Summen, alle anderen Werte
+      Mittelwerte.
+    </p>
+
+    <div class="scroll">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Zeitraum</th>
+            <th>Tage</th>
+            <th>Mittel &deg;C</th>
+            <th>Max &deg;C</th>
+            <th>Min &deg;C</th>
+            <th>Regen mm</th>
+            <th>Sonne h</th>
+            <th>Wind m/s</th>
+            <th>Feuchte %</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of page(); track p.period) {
+            <tr>
+              <td>{{ formatPeriod(p.period) }}</td>
+              <td>{{ p.days }}</td>
+              <td>{{ format(p.tmk) }}</td>
+              <td>{{ format(p.txk) }}</td>
+              <td>{{ format(p.tnk) }}</td>
+              <td>{{ format(p.rsk) }}</td>
+              <td>{{ format(p.sdk) }}</td>
+              <td>{{ format(p.fm) }}</td>
+              <td>{{ format(p.upm) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (hasPrevious() || hasNext()) {
+      <div class="pager">
+        <button
+          type="button"
+          class="btn"
+          [disabled]="!hasPrevious()"
+          (click)="previousPage()"
+        >
+          zurueck
+        </button>
+        <button
+          type="button"
+          class="btn"
+          [disabled]="!hasNext()"
+          (click)="nextPage()"
+        >
+          weiter
+        </button>
+      </div>
+    }
+  }
+</section>

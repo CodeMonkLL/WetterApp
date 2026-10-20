@@ -1,0 +1,42 @@
+@let a = analysis();
+<section class="panel">
+  <h2 class="panel__title">Ort</h2>
+  <p class="location">{{ a.display_name ?? "Koordinaten" }}</p>
+  <p class="hint">
+    {{ a.latitude.toFixed(4) }}&deg; N, {{ a.longitude.toFixed(4) }}&deg; E
+    @if (a.target_height !== null) {
+      <br />{{ a.target_height }} m ue. NN, Temperaturen hoehenkorrigiert
+    }
+  </p>
+
+  <h3 class="panel__title panel__title--section">Einbezogene Stationen</h3>
+  <p class="hint">
+    Gewichtet nach 1/Entfernung&sup2;. Fehlt einer Station ein Tageswert,
+    verteilt sich ihr Anteil auf die uebrigen.
+  </p>
+
+  <div class="scroll">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Station</th>
+          <th>km</th>
+          <th>Hoehe</th>
+          <th>Anteil</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of a.stations; track s.station_id) {
+          <tr>
+            <td [title]="s.station_id + (s.state ? ', ' + s.state : '')">
+              {{ s.name }}
+            </td>
+            <td>{{ s.distance_km.toFixed(1) }}</td>
+            <td>{{ s.height ?? "-" }}</td>
+            <td>{{ percent(s.weight) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -36,7 +36,7 @@ class AnalysisPeriodDto:
 @dataclass(frozen=True)
 class LocationAnalysisDto:
     address: str | None
-    display_name: str | None
+    display_name: str | None  # Geocodierte Adresse oder bei lat/lon der nächste Ort
     latitude: float
     longitude: float
     target_height: float | None

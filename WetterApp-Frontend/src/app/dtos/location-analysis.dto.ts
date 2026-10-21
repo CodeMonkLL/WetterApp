@@ -42,7 +42,7 @@ export interface AnalysisPeriodDto {
 /** Antwort von GET /api/analysis/location. */
 export interface LocationAnalysisDto {
   address: string | null;
-  /** Vom Geocoder aufgelöste Adresse, null bei Eingabe per Koordinaten. */
+  /** Vom Geocoder aufgelöste Adresse, bei Eingabe per Koordinaten der nächste Ort. */
   display_name: string | null;
   latitude: number;
   longitude: number;

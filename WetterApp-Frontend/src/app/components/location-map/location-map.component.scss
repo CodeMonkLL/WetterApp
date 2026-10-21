@@ -1,0 +1,50 @@
+.location-map {
+  height: 520px;
+  border: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-pixel);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+
+  &.leaflet-container {
+    cursor: crosshair;
+  }
+
+  .leaflet-tooltip {
+    font-family: var(--font-pixel);
+    font-size: 8px;
+    border-radius: var(--radius);
+  }
+
+  .location-map__label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    box-shadow: var(--shadow-pixel-sm);
+  }
+}
+
+// CSS schlägt die SVG-Attribute von Leaflet, so greifen auch die Dark-Mode-Tokens.
+.location-map__point {
+  fill: var(--color-danger);
+  stroke: var(--color-border);
+  stroke-width: 3px;
+}
+
+.location-map__station {
+  fill: var(--color-accent-alt);
+  stroke: var(--color-border);
+  stroke-width: 2px;
+}
+
+.location-map__link {
+  stroke: var(--color-border);
+  stroke-width: 2px;
+  stroke-dasharray: 4 4;
+}
+
+@media (max-width: 900px) {
+  .location-map {
+    height: 360px;
+  }
+}

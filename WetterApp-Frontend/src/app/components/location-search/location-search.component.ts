@@ -15,6 +15,9 @@ const LAST_FULL_YEAR = new Date().getFullYear() - 1;
 })
 export class LocationSearchComponent {
   readonly loading = input(false);
+  /** Ohne Adressfeld, wenn der Ort anders gewählt wird, z.B. auf der Karte. */
+  readonly withAddress = input(true);
+  readonly canSubmit = input(true);
   readonly search = output<LocationAnalysisParams>();
 
   address = '';
@@ -25,15 +28,20 @@ export class LocationSearchComponent {
   radiusKm: number | null = 50;
   height: number | null = null;
 
-  submit(): void {
-    this.search.emit({
-      address: this.address.trim(),
+  /** Aktuelle Formularwerte, auch ohne Absenden abrufbar. */
+  params(): LocationAnalysisParams {
+    return {
+      address: this.withAddress() ? this.address.trim() : undefined,
       dateFrom: this.dateFrom,
       dateTo: this.dateTo,
       resolution: this.resolution,
       stations: this.stations ?? undefined,
       radiusKm: this.radiusKm ?? undefined,
       height: this.height ?? undefined,
-    });
+    };
+  }
+
+  submit(): void {
+    this.search.emit(this.params());
   }
 }

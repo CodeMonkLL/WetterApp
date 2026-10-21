@@ -1,0 +1,40 @@
+<div class="page">
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+
+  <app-location-search
+    [withAddress]="false"
+    [canSubmit]="point() !== null"
+    [loading]="loading()"
+    (search)="onSearch($event)"
+  />
+
+  <div class="grid">
+    <app-location-map
+      [point]="point()"
+      [label]="result()?.display_name ?? null"
+      [stations]="stations()"
+      (pick)="onPick($event)"
+    />
+
+    @if (result(); as r) {
+      <app-neighbor-stations [analysis]="r" />
+    } @else {
+      <p class="panel hint">
+        @if (loading()) {
+          Lade ...
+        } @else {
+          Zeitraum waehlen und einen Ort auf der Karte anklicken. Die Werte
+          werden aus den naechstgelegenen Stationen nach Entfernung gewichtet
+          zusammengefasst. Nach Aenderung des Zeitraums "Auswerten" druecken.
+        }
+      </p>
+    }
+  </div>
+
+  @if (result(); as r) {
+    <app-analysis-chart [series]="r.series" />
+    <app-analysis-table [series]="r.series" />
+  }
+</div>

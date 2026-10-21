@@ -1,15 +1,17 @@
 <form class="search" #form="ngForm" (ngSubmit)="submit()">
-  <label class="field field--wide">
-    <span>Adresse oder Ort</span>
-    <input
-      type="text"
-      name="address"
-      placeholder="z.B. Domkloster 4, Koeln"
-      [(ngModel)]="address"
-      required
-      maxlength="200"
-    />
-  </label>
+  @if (withAddress()) {
+    <label class="field field--wide">
+      <span>Adresse oder Ort</span>
+      <input
+        type="text"
+        name="address"
+        placeholder="z.B. Domkloster 4, Koeln"
+        [(ngModel)]="address"
+        required
+        maxlength="200"
+      />
+    </label>
+  }
 
   <label class="field">
     <span>von</span>
@@ -69,7 +71,7 @@
     <button
       type="submit"
       class="btn btn--primary"
-      [disabled]="loading() || form.invalid"
+      [disabled]="loading() || !canSubmit() || form.invalid"
     >
       {{ loading() ? "..." : "Auswerten" }}
     </button>

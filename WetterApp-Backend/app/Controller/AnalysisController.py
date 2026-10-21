@@ -13,7 +13,8 @@ def analyse_location():
     """Wertet einen beliebigen Ort in Deutschland aus den umliegenden Stationen aus.
 
     Der Ort wird über `address` (Geocoding via OpenStreetMap) oder direkt über
-    `lat`/`lon` angegeben. Gesucht werden die nächsten Stationen im Radius, die
+    `lat`/`lon` angegeben. Bei Koordinaten enthält `display_name` den nächsten
+    Ort, sofern der Geocoding-Dienst erreichbar ist. Gesucht werden die nächsten Stationen im Radius, die
     im Zeitraum Messwerte haben. Pro Tag wird jede Messgröße per Inverse
     Distance Weighting (Gewicht 1/d²) gemittelt, anschließend auf Monat oder
     Jahr verdichtet: Temperatur, Wind und Feuchte als Mittel, Niederschlag und

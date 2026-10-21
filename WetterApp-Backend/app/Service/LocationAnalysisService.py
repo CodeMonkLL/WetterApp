@@ -8,7 +8,7 @@ from app.Model.Dtos import AnalysisPeriodDto, LocationAnalysisDto, NeighborStati
 from app.Model.Station import Station
 from app.Repository.DailyMeasurementRepository import DailyMeasurementRepository
 from app.Repository.StationRepository import StationRepository
-from app.Service.GeocodingService import GeoLocation, geocode
+from app.Service.GeocodingService import GeocodingError, GeoLocation, geocode, reverse_geocode
 from app.Service.WeatherService import _as_date, _check_range
 
 EARTH_RADIUS_KM = 6371.0
@@ -163,7 +163,12 @@ def _resolve_location(address: str | None, latitude: float | None, longitude: fl
         raise ValueError("Entweder address oder lat und lon angeben.")
     if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
         raise ValueError("lat/lon liegen außerhalb des gültigen Bereichs.")
-    return GeoLocation(latitude, longitude, None)
+    try:
+        place = reverse_geocode(latitude, longitude)
+    except GeocodingError:
+        # Der Ortsname ist nur Beiwerk, die Auswertung klappt auch ohne.
+        place = None
+    return GeoLocation(latitude, longitude, place)
 
 
 def _find_neighbors(
